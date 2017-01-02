@@ -1,12 +1,12 @@
 version: '2'
 services:
-    torrent-sync:
-        image: kurron/docker-bittorrent-sync:latest
+    bt-sync:
+        image: bittorrent/sync
         container_name: bt-sync
         restart: always
         network_mode: host
         volumes:
-        - /media/storage/bt-sync:/bt-sync
+        - /media/storage/bt-sync:/mnt/sync
     plex:
         image: timhaak/plex:latest
         container_name: plex
@@ -17,20 +17,38 @@ services:
         - /media/storage/plex:/data:ro
         environment:
             SKIP_CHOWN_CONFIG: "TRUE"
-    consul:
-        image: consul:latest
-        container_name: consul
-        restart: always
-        network_mode: host
-        volumes:
-        - ./consul:/consul/config:ro
-        - /media/storage/consul:/consul/data:rw
-        command: consul agent -config-dir /consul/config
+# TODO: There is no consul server running, so starting the client is pointless.
+#    consul:
+#        image: consul:latest
+#        container_name: consul
+#        restart: always
+#        network_mode: host
+#        volumes:
+#        - ./consul:/consul/config:ro
+#        - /media/storage/consul:/consul/data:rw
+#        command: consul agent -config-dir /consul/config
     transmission:
         image: dperson/transmission
         container_name: transmission
         restart: always
         network_mode: host
+        volumes:
+        - /media/storage/transmission:/var/lib/transmission-daemon/downloads
         environment:
             TRUSER: admin
             TRPASSWD: admin
+    filebot:
+        image: coppit/filebot 
+        container_name: filebot 
+        restart: always
+        network_mode: host
+        volumes:
+        - /etc/localtime:/etc/localtime
+        - /media/storage/filebot:/config:rw
+        - /media/storage/transmission:/input:rw
+        - /media/storage/plex:/output:rw 
+        environment:
+            USER_ID: 1000 
+            GROUP_ID: 1000 
+            UMASK: '0002'
+
